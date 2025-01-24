@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Phone Filters</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+            background-color: #f4f4f4;
+        }
+        /* New layout styles */
+        .page-layout {
+            display: flex;
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .filters-container {
+            flex: 0 0 600px;
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .results-container {
+            flex: 1;
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            min-height: 400px;
+            position: sticky;
+            top: 20px;
+        }
+        .results-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eee;
+        }
+        .results-content {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #333;
+        }
+        .no-results {
+            color: #666;
+            font-style: italic;
+            text-align: center;
+            margin-top: 40px;
+        }
+        /* Original styles */
+        .range-slider-container {
+            margin: 20px 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+        .range-slider {
+            position: relative;
+            height: 5px;
+            background-color: #ddd;
+            border-radius: 5px;
+            margin: 30px 10px;
+        }
+        .range-slider .track {
+            position: absolute;
+            height: 100%;
+            background-color: #007bff;
+            border-radius: 5px;
+        }
+        .range-slider .handle {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: #007bff;
+            position: absolute;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .range-values {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            color: #666;
+        }
+        .slider-label {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .brand-section {
+            margin-top: 20px;
+        }
+        .brand-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .brand-button {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid;
+            background: transparent;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .brand-button.samsung { border-color: #1428a0; color: #1428a0; }
+        .brand-button.apple { border-color: #000; color: #000; }
+        .brand-button.google { border-color: #4285f4; color: #4285f4; }
+        .brand-button.selected.samsung { background: #1428a0; color: white; }
+        .brand-button.selected.apple { background: #000; color: white; }
+        .brand-button.selected.google { background: #4285f4; color: white; }
+        .submit-button {
+            width: 100%;
+            margin-top: 20px;
+            padding: 12px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        .submit-button:hover {
+            background-color: #218838;
+        }
+        #status {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            display: none;
+            text-align: center;
+        }
+        .status-success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .status-error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            position: relative;
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .close {
+            position: absolute;
+            right: 20px;
+            top: 10px;
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #555;
+        }
+
+        /* Phone card styles */
+        /* Updated phone card styles */
+        .phone-card {
+            background: white;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: box-shadow 0.3s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .phone-card:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .phone-content {
+            display: flex;
+            width: 100%;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .phone-info {
+            flex: 1;
+        }
+
+        .phone-name {
+            font-size: 1.25rem;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .phone-brand {
+            color: #666;
+        }
+
+        .phone-price {
+            font-weight: bold;
+            color: #2d9d3b;
+            margin-top: 4px;
+        }
+
+        .phone-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;  /* Changed from 'cover' to 'contain' */
+            border-radius: 4px;
+        }
+
+        .phone-image-container {
+            flex-shrink: 0;
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            margin-left: 16px;
+            padding: 4px;  /* Added padding to give some breathing room */
+        }
+
+
+        /* Modal content styles */
+        .modal-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin-top: 20px;
+        }
+
+        .spec-group {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .spec-icon {
+            width: 24px;
+            height: 24px;
+            color: #4a5568;
+        }
+
+        .spec-details h4 {
+            font-weight: bold;
+            margin: 0 0 4px 0;
+        }
+
+        .spec-details p {
+            margin: 0;
+            color: #666;
+        }
+
+        .modal-price {
+            margin-top: 24px;
+            padding-top: 16px;
+            border-top: 1px solid #eee;
+        }
+
+        .modal-price .price-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #2d9d3b;
+        }
+
+        .modal-price .price-category {
+            color: #666;
+            font-size: 0.875rem;
+            margin-top: 4px;
+        }
+    </style>
+
+<body>
+<!-- Rest of the HTML and JavaScript remains exactly the same as in your original code -->
+<div class="page-layout">
+    <div class="filters-container">
+        <!-- Price Range -->
+        <div class="range-slider-container">
+            <div class="slider-label">Price Range (₪)</div>
+            <div class="range-slider" id="priceSlider">
+                <div class="track"></div>
+                <div class="handle" id="minPriceHandle"></div>
+                <div class="handle" id="maxPriceHandle"></div>
+            </div>
+            <div class="range-values">
+                <span id="minPrice">₪0</span>
+                <span id="maxPrice">₪10,000</span>
+            </div>
+        </div>
+
+        <div class="range-slider-container">
+            <div class="slider-label">Display Size (inch)</div>
+            <div class="range-slider" id="displaySizeSlider">
+                <div class="track"></div>
+                <div class="handle" id="minDisplaySizeHandle"></div>
+                <div class="handle" id="maxDisplaySizeHandle"></div>
+            </div>
+            <div class="range-values">
+                <span id="minDisplaySize">3.0</span>
+                <span id="maxDisplaySize">8.0</span>
+            </div>
+        </div>
+
+        <div class="range-slider-container">
+            <div class="slider-label">Refresh Rate (Hz)</div>
+            <div class="range-slider" id="refreshSlider">
+                <div class="track"></div>
+                <div class="handle" id="minRefreshHandle"></div>
+                <div class="handle" id="maxRefreshHandle"></div>
+            </div>
+            <div class="range-values">
+                <span id="minRefresh">60</span>
+                <span id="maxRefresh">144</span>
+            </div>
+        </div>
+
+        <!-- Brands -->
+        <div class="brand-section">
+            <div class="slider-label">Brands</div>
+            <div class="brand-buttons">
+                <button class="brand-button samsung" onclick="toggleBrand(this, 'samsung')">Samsung</button>
+                <button class="brand-button apple" onclick="toggleBrand(this, 'apple')">Apple</button>
+                <button class="brand-button google" onclick="toggleBrand(this, 'google')">Google</button>
+            </div>
+        </div>
+
+        <button class="submit-button" onclick="submitFilters()">Apply Filters</button>
+        <div id="status"></div>
+    </div>
+
+    <div class="results-container">
+        <div class="results-title">Filter Results</div>
+        <div id="results-content" class="results-content">
+            <div class="no-results">No filters applied yet. Click "Apply Filters" to see results.</div>
+        </div>
+    </div>
+    <div id="phoneModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div id="modalContent"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Original JavaScript code remains exactly the same except for the modified submitFilters function -->
+<script>
+    let modal;
+    let closeBtn;
+
+    // [Previous JavaScript code remains unchanged]
+    const selectedBrands = new Set();
+    const refreshRates = [60, 90, 120, 144];
+
+    // Price Slider
+    const priceSlider = document.getElementById('priceSlider');
+    const minPriceHandle = document.getElementById('minPriceHandle');
+    const maxPriceHandle = document.getElementById('maxPriceHandle');
+    const priceTrack = priceSlider.querySelector('.track');
+    const minPriceDisplay = document.getElementById('minPrice');
+    const maxPriceDisplay = document.getElementById('maxPrice');
+
+    const minPriceValue = 0;
+    const maxPriceValue = 10_000;
+    let currentMinPrice = minPriceValue;
+    let currentMaxPrice = maxPriceValue;
+
+    // Display Size Slider
+    const displaySizeSlider = document.getElementById('displaySizeSlider');
+    const minDisplaySizeHandle = document.getElementById('minDisplaySizeHandle');
+    const maxDisplaySizeHandle = document.getElementById('maxDisplaySizeHandle');
+    const displaySizeTrack = displaySizeSlider.querySelector('.track');
+    const minDisplaySizeDisplay = document.getElementById('minDisplaySize');
+    const maxDisplaySizeDisplay = document.getElementById('maxDisplaySize');
+
+    const minDisplaySizeValue = 3;
+    const maxDisplaySizeValue = 8;
+    let currentMinDisplaySize = minDisplaySizeValue;
+    let currentMaxDisplaySize = maxDisplaySizeValue;
+
+    // Refresh Rate Slider
+    const refreshSlider = document.getElementById('refreshSlider');
+    const minRefreshHandle = document.getElementById('minRefreshHandle');
+    const maxRefreshHandle = document.getElementById('maxRefreshHandle');
+    const refreshTrack = refreshSlider.querySelector('.track');
+    const minRefreshDisplay = document.getElementById('minRefresh');
+    const maxRefreshDisplay = document.getElementById('maxRefresh');
+
+    const minRefreshValue = 60;
+    const maxRefreshValue = 144;
+    let currentMinRefresh = minRefreshValue;
+    let currentMaxRefresh = maxRefreshValue;
+
+    function setHandlePosition(handle, value, min, max) {
+        const percentage = ((value - min) / (max - min)) * 100;
+        handle.style.left = `${percentage}%`;
+    }
+
+    function updateTrack(track, minHandle, maxHandle) {
+        const minPercentage = parseFloat(minHandle.style.left);
+        const maxPercentage = parseFloat(maxHandle.style.left);
+        track.style.left = `${minPercentage}%`;
+        track.style.width = `${maxPercentage - minPercentage}%`;
+    }
+
+    function getClosestRefreshRate(value) {
+        return refreshRates.reduce((prev, curr) =>
+            Math.abs(curr - value) < Math.abs(prev - value) ? curr : prev
+        );
+    }
+
+    function handleDrag(slider, handle, isMin, sliderType) {
+        const sliderRect = slider.getBoundingClientRect();
+        const handleWidth = handle.offsetWidth;
+
+        function onMove(moveEvent) {
+            const position = (moveEvent.clientX - sliderRect.left - handleWidth/2) / (sliderRect.width - handleWidth);
+            let value;
+
+            switch (sliderType) {
+                case "price":
+                    value = Math.floor(minPriceValue + position * (maxPriceValue - minPriceValue));
+                    value = Math.round(value / 50) * 50; // Snap to steps of 50
+
+                    if (isMin) {
+                        currentMinPrice = Math.min(Math.max(value, minPriceValue), currentMaxPrice - 50);
+                        setHandlePosition(minPriceHandle, currentMinPrice, minPriceValue, maxPriceValue);
+                        minPriceDisplay.textContent = `₪${currentMinPrice}`;
+                    } else {
+                        currentMaxPrice = Math.min(Math.max(value, currentMinPrice + 50), maxPriceValue);
+                        setHandlePosition(maxPriceHandle, currentMaxPrice, minPriceValue, maxPriceValue);
+                        maxPriceDisplay.textContent = `₪${currentMaxPrice}`;
+                    }
+                    updateTrack(priceTrack, minPriceHandle, maxPriceHandle);
+                    break;
+
+                case "refreshRate":
+                    value = minRefreshValue + position * (maxRefreshValue - minRefreshValue);
+                    value = getClosestRefreshRate(value);
+
+                    if (isMin) {
+                        currentMinRefresh = Math.min(value, currentMaxRefresh);
+                        setHandlePosition(minRefreshHandle, currentMinRefresh, minRefreshValue, maxRefreshValue);
+                        minRefreshDisplay.textContent = currentMinRefresh;
+                    } else {
+                        currentMaxRefresh = Math.max(value, currentMinRefresh);
+                        setHandlePosition(maxRefreshHandle, currentMaxRefresh, minRefreshValue, maxRefreshValue);
+                        maxRefreshDisplay.textContent = currentMaxRefresh;
+                    }
+                    updateTrack(refreshTrack, minRefreshHandle, maxRefreshHandle);
+                    break;
+                case "displaySize":
+                    value = Math.floor(minDisplaySizeValue + position * (maxDisplaySizeValue - minDisplaySizeValue));
+                    value = Math.round(value * 10) / 10;
+
+                    if (isMin) {
+                        currentMinDisplaySize = Math.min(Math.max(value, minDisplaySizeValue), currentMaxDisplaySize - 0.1);
+                        setHandlePosition(minDisplaySizeHandle, currentMinDisplaySize, minDisplaySizeValue, maxDisplaySizeValue);
+                        minDisplaySizeDisplay.textContent = currentMinDisplaySize.toFixed(1);
+                    } else {
+                        currentMaxDisplaySize = Math.min(Math.max(value, currentMinDisplaySize + 0.1), maxDisplaySizeValue);
+                        setHandlePosition(maxDisplaySizeHandle, currentMaxDisplaySize, minDisplaySizeValue, maxDisplaySizeValue);
+                        maxDisplaySizeDisplay.textContent = currentMaxDisplaySize.toFixed(1);
+                    }
+                    updateTrack(displaySizeTrack, minDisplaySizeHandle, maxDisplaySizeHandle);
+                    break;
+            }
+        }
+
+        function onUp() {
+            document.removeEventListener('mousemove', onMove);
+            document.removeEventListener('mouseup', onUp);
+        }
+
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('mouseup', onUp);
+    }
+
+    // Price slider event listeners
+    minPriceHandle.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        handleDrag(priceSlider, minPriceHandle, true, "price");
+    });
+
+    maxPriceHandle.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        handleDrag(priceSlider, maxPriceHandle, false, "price");
+    });
+
+    minDisplaySizeHandle.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        handleDrag(displaySizeSlider, minDisplaySizeHandle, true, "displaySize");
+    });
+
+    maxDisplaySizeHandle.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        handleDrag(displaySizeSlider, maxDisplaySizeHandle, false, "displaySize");
+    });
+
+    // Refresh rate slider event listeners
+    minRefreshHandle.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        handleDrag(refreshSlider, minRefreshHandle, true, "refreshRate");
+    });
+
+    maxRefreshHandle.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        handleDrag(refreshSlider, maxRefreshHandle, false, "refreshRate");
+    });
+
+    function toggleBrand(button, brand) {
+        button.classList.toggle('selected');
+        if (selectedBrands.has(brand)) {
+            selectedBrands.delete(brand);
+        } else {
+            selectedBrands.add(brand);
+        }
+    }
+
+    function validateSelection() {
+        const status = document.getElementById('status');
+        if (selectedBrands.size === 0) {
+            status.style.display = 'block';
+            status.textContent = 'Please select at least one brand.';
+            status.className = 'status-error';
+            return false;
+        }
+        status.style.display = 'none'; // Hide any previous messages
+        return true;
+    }
+
+    // Format functions
+    function formatDate(dateString) {
+        return new Date(dateString).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+    }
+
+    function formatPrice(price) {
+        return '₪' + price.toLocaleString();
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const modal = document.getElementById('phoneModal');
+        const closeBtn = document.getElementsByClassName('close')[0];
+
+        // Set up modal close button
+        closeBtn.onclick = function() {
+            modal.style.display = 'none';
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape' && modal.style.display === 'block') {
+                modal.style.display = 'none';
+            }
+        });
+    });
+
+    function createPhoneCard(phone) {
+        return `
+        <div class="phone-card" onclick="showPhoneDetails(${JSON.stringify(phone).replace(/"/g, '&quot;')})">
+            <div class="phone-header">
+                <div class="phone-info">
+                    <div class="phone-name">${phone.Name}</div>
+                    <div class="phone-brand">${phone.Brand}</div>
+                    <div class="phone-price">${formatPrice(phone.RealPrice)}</div>
+                </div>
+            </div>
+            <div class="phone-image-container">
+                <img src="${phone.Image}" alt="${phone.Name}" class="phone-image"
+                     onerror="this.onerror=null; this.src='/api/placeholder/80/80';">
+            </div>
+        </div>
+    `;
+    }
+
+    function showPhoneDetails(phone) {
+        if (!modal) {
+            initializeModal();
+        }
+        if (!modal) return; // Exit if modal still doesn't exist
+
+        const modalContent = modal.querySelector('#modalContent');
+        if (!modalContent)
+            return;
+        let estimatedMarker = "";
+        let isEstimatedString = "";
+        if (phone.Benchmark.IsEstimatedBenchmark) {
+            estimatedMarker = "*";
+            isEstimatedString = "(estimated)";
+        }
+
+
+        modalContent.innerHTML = `
+        <h2 style="font-size: 1.5rem; font-weight: bold; margin-bottom: 16px;">${phone.Name}</h2>
+        <div class="modal-grid">
+            <div>
+                <div class="spec-group">
+                    <div class="spec-icon">📅</div>
+                    <div class="spec-details">
+                        <h4>Release Date</h4>
+                        <p>${formatDate(phone.Specs.ReleaseDate)}</p>
+                    </div>
+                </div>
+                <div class="spec-group">
+                    <div class="spec-icon">🔋</div>
+                    <div class="spec-details">
+                        <h4>Battery</h4>
+                        <p>${phone.Specs.BatteryCapacity} mAh</p>
+                    </div>
+                </div>
+                <div class="spec-group">
+                    <div class="spec-icon">📱</div>
+                    <div class="spec-details">
+                        <h4>Display</h4>
+                        <p>${phone.Specs.DisplaySize}" - ${phone.Specs.DisplayResolution}<br>${phone.Specs.RefreshRate}Hz Refresh Rate</p>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <div class="spec-group">
+                    <div class="spec-icon">📸</div>
+                    <div class="spec-details">
+                        <h4>Cameras</h4>
+                        <p>Main: ${phone.Specs.MainCamerasSetup} Camera Setup<br>Selfie: ${phone.Specs.SelfieCamerasSetup} Camera Setup</p>
+                    </div>
+                </div>
+                <div class="spec-group">
+                    <div class="spec-icon">💻</div>
+                    <div class="spec-details">
+                        <h4 style="display: inline;">Performance</h4>
+                        <p style="display: inline;">${isEstimatedString}</p>
+                        <p>Multi-Core: ${phone.Benchmark.MultiCoreScore}${estimatedMarker}<br>Single-Core: ${phone.Benchmark.SingleCoreScore}${estimatedMarker}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-price">
+            <div class="price-value">${formatPrice(phone.RealPrice)}</div>
+        </div>
+    `;
+        modal.style.display = 'block';
+    }
+
+
+    // Update your submitFilters function to use the new card system
+    function updateResultsContent(serverResponse) {
+        const resultsContent = document.getElementById('results-content');
+
+        // Create filter summary
+        const filterSummary = `
+        <div style="margin-bottom: 24px;">
+            <h3 style="font-weight: bold; margin-bottom: 8px;">Applied Filters:</h3>
+            <ul style="color: #666;">
+                <li>Price: ${formatPrice(currentMinPrice)} - ${formatPrice(currentMaxPrice)}</li>
+                <li>Display Size: ${currentMinDisplaySize}" - ${currentMaxDisplaySize}"</li>
+                <li>Refresh Rate: ${currentMinRefresh}Hz - ${currentMaxRefresh}Hz</li>
+                <li>Brands: ${Array.from(selectedBrands).join(", ") || "None"}</li>
+            </ul>
+        </div>
+        `;
+
+
+        // Create phone cards
+        const phoneCards = serverResponse.map(phone => createPhoneCard(phone)).join('');
+
+        // Update the results container
+        resultsContent.innerHTML = filterSummary + phoneCards;
+    }
+
+    async function submitFilters() {
+        if (!validateSelection()) {
+            return;
+        }
+
+        const values = {
+            brands: Array.from(selectedBrands),
+            priceRange: {
+                min: currentMinPrice,
+                max: currentMaxPrice
+            },
+            displaySize: {
+                min: currentMinDisplaySize,
+                max: currentMaxDisplaySize
+            },
+            refreshRate: {
+                min: currentMinRefresh,
+                max: currentMaxRefresh
+            }
+        };
+
+        const status = document.getElementById('status');
+        const resultsContent = document.getElementById('results-content');
+
+        try {
+            const response = await fetch('/submit-filters', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(values)
+            });
+
+            status.style.display = 'block';
+
+            if (response.ok) {
+                status.textContent = 'Filters applied successfully';
+                status.className = 'status-success';
+
+                const serverResponse = await response.json();
+
+                if (serverResponse == null) {
+                    status.textContent = 'Failed to find devices';
+                    status.className = 'status-error';
+                }
+                else {
+                    updateResultsContent(serverResponse); // Use the new function here
+                }
+            } else {
+                throw new Error('Server response was not ok');
+            }
+        } catch (error) {
+            status.textContent = 'Failed to apply filters. Please try again.';
+            status.className = 'status-error';
+            console.error('Error:', error);
+        }
+
+        setTimeout(() => {
+            status.style.display = 'none';
+        }, 3000);
+    }
+
+    function initializeModal() {
+        modal = document.getElementById('phoneModal');
+        if (!modal) return; // Exit if modal element doesn't exist
+
+        closeBtn = modal.querySelector('.close');
+
+        // Set up modal close button
+        if (closeBtn) {
+            closeBtn.onclick = function() {
+                modal.style.display = 'none';
+            };
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        };
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape' && modal && modal.style.display === 'block') {
+                modal.style.display = 'none';
+            }
+        });
+    }
+    document.addEventListener('DOMContentLoaded', initializeModal);
+
+    // Initialize positions
+    setHandlePosition(minPriceHandle, currentMinPrice, minPriceValue, maxPriceValue);
+    setHandlePosition(maxPriceHandle, currentMaxPrice, minPriceValue, maxPriceValue);
+    updateTrack(priceTrack, minPriceHandle, maxPriceHandle);
+
+    setHandlePosition(minDisplaySizeHandle, currentMinDisplaySize, minDisplaySizeValue, maxDisplaySizeValue);
+    setHandlePosition(maxDisplaySizeHandle, currentMaxDisplaySize, minDisplaySizeValue, maxDisplaySizeValue);
+    updateTrack(displaySizeTrack, minDisplaySizeHandle, maxDisplaySizeHandle);
+
+    setHandlePosition(minRefreshHandle, currentMinRefresh, minRefreshValue, maxRefreshValue);
+    setHandlePosition(maxRefreshHandle, currentMaxRefresh, minRefreshValue, maxRefreshValue);
+    updateTrack(refreshTrack, minRefreshHandle, maxRefreshHandle);</script>
+</body>
+</html>
