@@ -3,7 +3,7 @@ package handlers
 import (
 	"deviceRecommendationWebsite/internal/apiCallers"
 	"encoding/json"
-	"github.com/ItaiHalperin/deviceRecsResources/dataTypes"
+	"github.com/ItaiHalperin/Device-Rec-API/dataTypes"
 	"log"
 	"net/http"
 	"strings"

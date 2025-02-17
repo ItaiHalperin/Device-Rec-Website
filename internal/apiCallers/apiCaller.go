@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/ItaiHalperin/deviceRecsResources/dataTypes"
+	"github.com/ItaiHalperin/Device-Rec-API/dataTypes"
 	"io"
 	"log"
 	"net/http"
